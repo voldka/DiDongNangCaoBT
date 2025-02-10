@@ -1,9 +1,9 @@
-import MainNavigator from "@/src/navigators/MainNavigator";
 import SplashScreen from "@/src/screens/SplashScreen";
 import { useAsyncStorage } from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from "react";
 import { StatusBar } from "react-native";
 import AuthNavigator from "../src/navigators/AuthNavigator";
+import MainNavigator from "@/src/navigators/MainNavigator";
 
 const Bai2: React.FC = () => {
     // sử dụng useState để lưu thời gian 1.5 giây
