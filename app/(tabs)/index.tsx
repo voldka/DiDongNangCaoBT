@@ -20,7 +20,7 @@ export default function Index() {
       {linkButtons}
       <View style={tailwind("w-full mb-4 border-red-500")}>
         <Link href="/home" style={tailwind("w-full p-3 text-center bg-blue-500/100 border border-red-500 rounded-lg")}>
-          <Text style={tailwind("text-white/100 text-xl")}>Go to Home screen</Text>
+          <Text style={tailwind("text-white/100 text-xl")}>Task 3 || Go to Home screen</Text>
         </Link>
       </View>
       <Link href="/about" style={tailwind("w-full p-3 text-center border border-red-500 rounded-lg")}>
