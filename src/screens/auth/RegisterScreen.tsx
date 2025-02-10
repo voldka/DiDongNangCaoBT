@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
-const LoginScreen = ({ navigation }) => {
+const RegisterScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Register</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -21,14 +22,18 @@ const LoginScreen = ({ navigation }) => {
         value={password}
         onChangeText={setPassword}
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Confirm Password"
+        secureTextEntry
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+      />
       <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Login</Text>
+        <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Don't have an account? Register</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-        <Text style={styles.link}>Forgot Password?</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.link}>Already have an account? Login</Text>
       </TouchableOpacity>
     </View>
   );
@@ -70,4 +75,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default RegisterScreen;

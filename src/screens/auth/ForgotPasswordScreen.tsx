@@ -1,34 +1,26 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
-const LoginScreen = ({ navigation }) => {
+const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Forgot Password</Text>
+      <Text style={styles.description}>
+        Enter your email address to reset your password
+      </Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
       <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Login</Text>
+        <Text style={styles.buttonText}>Reset Password</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Don't have an account? Register</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-        <Text style={styles.link}>Forgot Password?</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.link}>Back to Login</Text>
       </TouchableOpacity>
     </View>
   );
@@ -42,8 +34,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: 'center',
+  },
+  description: {
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#666',
   },
   input: {
     borderWidth: 1,
@@ -70,4 +67,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default ForgotPasswordScreen;

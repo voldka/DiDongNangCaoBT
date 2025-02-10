@@ -1,18 +1,23 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { LoginScreen, OnbroadingScreen } from "../screens";
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import LoginScreen from '../screens/auth/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+
+const Stack = createStackNavigator();
 
 const AuthNavigator = () => {
-    const Stack = createNativeStackNavigator();
-
-    // Auth goi Login |
-    return (
-        <Stack.Navigator screenOptions={{
-            headerShown: false,
-        }}>
-            <Stack.Screen name="OnbroadingScreen" component={OnbroadingScreen} />
-            <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        </Stack.Navigator>
-    );
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false
+      }}
+    >
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    </Stack.Navigator>
+  );
 };
 
 export default AuthNavigator;
