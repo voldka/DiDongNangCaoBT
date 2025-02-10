@@ -31,6 +31,7 @@ const Bai2: React.FC = () => {
     // Khu vực các hàm
     const checkLogin = async () => {
         const token = await getItem();
+        debugger;
         console.log(token);
         // check token
         token && setAccessToken(token);

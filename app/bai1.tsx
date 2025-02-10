@@ -26,7 +26,7 @@ const Bai1a: React.FC = () => {
             <Button title='đặt lại 10 giây' onPress={() => setTimeLeft(10)}></Button>
             <View style={tailwind('py-3')}>
 
-                <Text>Tên tôi là: Lê Minh Tài</Text>
+                <Text>Tên tôi là: Lê Minh Tài </Text>
                 <Text>Tôi là sinh viên trường HCMUTE</Text>
             </View>
         </SafeAreaView>
