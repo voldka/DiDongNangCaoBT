@@ -1,4 +1,3 @@
-
 import { Href, Link, Stack } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -6,11 +5,11 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function NotFoundScreen() {
   return (
     <React.Fragment>
-      <Stack.Screen options={{ title: 'Oops! Not Found' }} />
+      <Stack.Screen options={{ title: 'Rất tiếc! Không tìm thấy' }} />
       <View style={styles.container}>
-        <Text style={styles.text}>Page Not Found</Text>
+        <Text style={styles.text}>Không tìm thấy trang</Text>
         <Link href={"/" as Href} style={styles.button}>
-          Go back to Home screen!
+          Quay về trang chủ!
         </Link>
       </View>
     </React.Fragment>

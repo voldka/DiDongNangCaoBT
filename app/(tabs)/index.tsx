@@ -23,6 +23,21 @@ export default function Index() {
           <Text style={tailwind("text-white/100 text-xl")}>Task 3 || Go to Home screen</Text>
         </Link>
       </View>
+      <View style={tailwind("w-full mb-4 border-red-500")}>
+        <Link href="/login" style={tailwind("w-full p-3 text-center bg-blue-500/100 border border-red-500 rounded-lg")}>
+          <Text style={tailwind("text-white/100 text-xl")}>Go to Login</Text>
+        </Link>
+      </View>
+      <View style={tailwind("w-full mb-4 border-red-500")}>
+        <Link href="/welcome" style={tailwind("w-full p-3 text-center bg-blue-500/100 border border-red-500 rounded-lg")}>
+          <Text style={tailwind("text-white/100 text-xl")}>Go to Welcome</Text>
+        </Link>
+      </View>
+      <View style={tailwind("w-full mb-4 border-red-500")}>
+        <Link href="/profile" style={tailwind("w-full p-3 text-center bg-blue-500/100 border border-red-500 rounded-lg")}>
+          <Text style={tailwind("text-white/100 text-xl")}>Go to Profile</Text>
+        </Link>
+      </View>
       <Link href="/about" style={tailwind("w-full p-3 text-center border border-red-500 rounded-lg")}>
         <Text style={tailwind("text-red-500/100")}>Go to About screen</Text>
       </Link>

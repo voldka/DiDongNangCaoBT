@@ -20,7 +20,7 @@ const userData = {
   numberPhone: "0123456789",
 };
 
-export default function HomeScreen() {
+export default function WelcomeScreen() {
   const tailwind = useTailwind();
   const [user, setUser] = useState(userData);
   const [modalVisible, setModalVisible] = useState(false);
@@ -54,19 +54,19 @@ export default function HomeScreen() {
           <View style={styles.modalView}>
             <TextInput
               style={styles.input}
-              placeholder="Enter new name"
+              placeholder="Nhập tên mới"
               value={tempName}
               onChangeText={setTempName}
             />
             <TextInput
               style={styles.input}
-              placeholder="Enter new email"
+              placeholder="Nhập email mới"
               value={tempEmail}
               onChangeText={setTempEmail}
             />{" "}
             <TextInput
               style={styles.input}
-              placeholder="Enter new number phone"
+              placeholder="Nhập số điện thoại mới"
               value={tempNumberPhone}
               onChangeText={setTempNumberPhone}
             />
@@ -74,13 +74,13 @@ export default function HomeScreen() {
               style={styles.updateButton}
               onPress={handleUpdate}
             >
-              <Text style={styles.buttonText}>Update</Text>
+              <Text style={styles.buttonText}>Cập nhật</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={styles.buttonText}>Hủy</Text>
             </TouchableOpacity>
           </View>
         </Modal>
@@ -102,7 +102,7 @@ export default function HomeScreen() {
             style={styles.headerContent}
           >
             <View style={{ flex: 1 }}>
-              <Text style={styles.name}>Welcome</Text>
+              <Text style={styles.name}>Chào mừng</Text>
               <Text style={styles.userInfo}>{user.name}</Text>
               <Text style={styles.userInfo}>{user.email}</Text>
               <Text style={styles.userInfo}>{user.numberPhone}</Text>
