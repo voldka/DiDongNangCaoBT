@@ -13,6 +13,14 @@ export interface Product {
   description: string;
 }
 
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  comment: string;
+}
+
 export const categories: Category[] = [
   { id: '1', name: 'Accessories', icon: '👜' },
   { id: '2', name: 'Home Decor', icon: '🏠' },
@@ -107,3 +115,34 @@ export const products: Product[] = [
     description: 'Elegant vintage dress with a classic cut'
   },
 ];
+
+export const reviews: Review[] = [
+  {
+    id: 'r1',
+    productId: '1',
+    userId: '1',
+    rating: 5,
+    comment: 'Excellent craftsmanship!',
+  },
+  {
+    id: 'r2',
+    productId: '2',
+    userId: '2',
+    rating: 4,
+    comment: 'Beautiful design, but a bit fragile.',
+  },
+  {
+    id: 'r3',
+    productId: '3',
+    userId: '3',
+    rating: 3,
+    comment: 'Good quality, reasonable price.',
+  },
+];
+
+export const mockUser = {
+  id: '1',
+  name: 'John Doe',
+  email: 'john@example.com',
+  avatar: 'https://placeimg.com/100/100/people',
+};
