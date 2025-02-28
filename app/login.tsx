@@ -1,97 +1,135 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { InputItem, Button } from '@ant-design/react-native';
-// Using Ant Design React Native icon (adjust import as needed)
 import { IconOutline } from '@ant-design/icons-react-native';
+import { router } from 'expo-router';
+import { userApi } from '../api/userApi';
+
+interface LoginForm {
+  email: string;
+  password: string;
+}
 
 const Login = () => {
-  const [form, setForm] = React.useState({ username: '', password: '' });
+  const [form, setForm] = React.useState<LoginForm>({ email: '', password: '' });
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
-  const onSignIn = () => {
-    // ...handle sign in...
+  const onSignIn = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await userApi.signIn(form);
+      // Handle successful login here, e.g., store token, redirect
+      router.push('/');
+    } catch (err) {
+      setError('Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
-      {/* <ImageBackground source={require('../../assets/bg.png')} style={styles.container}> */}
-      <View style={styles.container}>
-      {/* Form container for semi-transparent background */}
+    <View style={styles.container}>
       <View style={styles.formContainer}>
-        {/* Icon */}
         <IconOutline name="user" size={50} style={styles.icon} />
-        {/* Title */}
-        <Text style={styles.title}>LT handmade</Text>
-        {/* Login form inputs without labels but with placeholders */}
+        <Text style={styles.title}>Welcome Back</Text>
+        
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
         <InputItem
-          placeholder="Username"
-          value={form.username}
-          onChange={value => setForm({ ...form, username: value })}
+          placeholder="Email"
+          value={form.email}
+          onChange={value => setForm({ ...form, email: value })}
+          style={styles.input}
         />
         <InputItem
           type="password"
           placeholder="Password"
           value={form.password}
           onChange={value => setForm({ ...form, password: value })}
+          style={styles.input}
         />
-        {/* Sign In button */}
-        <Button type="primary" onPress={onSignIn} style={styles.signInButton}>
-          Sign In
+
+        <Button
+          type="primary"
+          onPress={onSignIn}
+          style={styles.button}
+          disabled={loading}
+        >
+          {loading ? <ActivityIndicator color="#fff" /> : 'Sign In'}
         </Button>
-        {/* Links for Sign Up and Forgot Password */}
+
         <View style={styles.links}>
-          <TouchableOpacity>
-            <Text style={styles.linkText}>Sign Up</Text>
+          <TouchableOpacity onPress={() => router.push('/signUp')}>
+            <Text style={styles.linkText}>Create new account</Text>
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={styles.linkText}>Forgot Password</Text>
+          <TouchableOpacity onPress={() => router.push('/forgotPassword')}>
+            <Text style={styles.linkText}>Forgot Password?</Text>
           </TouchableOpacity>
         </View>
       </View>
-      </View>
-    {/* </ImageBackground> */}
-    </>
-  
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // removed backgroundColor in favor of image
+    backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
   },
   formContainer: {
     width: '90%',
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // semi-transparent background
-    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    borderRadius: 15,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   icon: {
     marginBottom: 20,
+    color: '#1890ff',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: 'bold',
     marginBottom: 30,
     color: '#333',
   },
-  signInButton: {
+  input: {
+    marginBottom: 15,
     width: '100%',
+  },
+  button: {
+    width: '100%',
+    marginTop: 10,
     marginBottom: 20,
     borderRadius: 8,
+    height: 45,
   },
   links: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     paddingHorizontal: 10,
-    marginTop: 10,
   },
   linkText: {
     color: '#1890ff',
     fontSize: 14,
+    marginHorizontal: 10,
+  },
+  error: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 
