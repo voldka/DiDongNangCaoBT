@@ -1,9 +1,11 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://192.168.56.1:4500'; // Replace 'http://default-api-base-url' with your default base URL if needed
+
+const API_URL = 'http://172.16.3.28:4500/'; // Replace 'http://default-api-base-url' with your default base URL if needed
 
 export const axiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,48 +7,57 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { productApi } from "../../api/productApi";
 
 const ProductDetail = () => {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with real data in your app
-  const product = {
-    id,
-    name: "Nike Air Max 2023",
-    price: "$199.99",
-    points: 1999,
-    rating: 4.5,
-    totalReviews: 128,
-    description:
-      "The latest Nike Air Max featuring enhanced comfort and style. Perfect for both athletic performance and casual wear.",
-    images: [
-      "https://via.placeholder.com/400?text=Image1",
-      "https://via.placeholder.com/400?text=Image2",
-      "https://via.placeholder.com/400?text=Image3",
-    ],
-    comments: [
-      {
-        id: "1",
-        user: "John D.",
-        rating: 5,
-        text: "Great product, very comfortable!",
-        date: "2023-12-01",
-      },
-      {
-        id: "2",
-        user: "Sarah M.",
-        rating: 4,
-        text: "Good quality but slightly expensive",
-        date: "2023-11-28",
-      },
-    ],
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+       
+        const response = await productApi.getDetailsProduct(id);
+       
+
+        setProduct(response.data);
+      } catch (error) {
+        console.error('Error fetching product details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductDetails();
+  }, [id]);
+
+  const formatPrice = (price: number) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (!product) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>Product not found</Text>
+      </View>
+    );
+  }
 
   const renderStars = (rating: number) => {
     return (
@@ -78,7 +87,6 @@ const ProductDetail = () => {
 
   return (
     <>
-      {/* <SafeAreaView style={styles.container}> */}
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header with back and share buttons */}
         <View style={styles.header}>
@@ -93,12 +101,12 @@ const ProductDetail = () => {
         {/* Image carousel */}
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: product.images[currentImageIndex] }}
+            source={{ uri: product.image[currentImageIndex] }}
             style={styles.image}
             resizeMode="cover"
           />
           <View style={styles.imageDots}>
-            {product.images.map((_, index) => (
+            {product.image.map((_, index) => (
               <TouchableOpacity
                 key={index}
                 style={[
@@ -112,43 +120,64 @@ const ProductDetail = () => {
         </View>
 
         <View style={styles.content}>
-          {/* Product info */}
           <Text style={styles.name}>{product.name}</Text>
+          <Text style={styles.type}>Type: {product.type.name}</Text>
+          
           <View style={styles.ratingContainer}>
-            {renderStars(product.rating)}
+            {renderStars(parseFloat(product.rating.$numberDecimal))}
             <Text style={styles.reviewCount}>
-              ({product.totalReviews} reviews)
+              ({product.countRating} reviews)
             </Text>
           </View>
 
-          {/* Price section */}
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>{product.price}</Text>
-            <Text style={styles.points}>{product.points} points</Text>
+            <Text style={styles.price}>₫{formatPrice(product.price)}</Text>
+            {product.discount > 0 && (
+              <Text style={styles.discount}>{product.discount}% OFF</Text>
+            )}
           </View>
 
-          {/* Description */}
+          <View style={styles.stockInfo}>
+            <Text>In Stock: {product.countInStock}</Text>
+            <Text>Sold: {product.selled}</Text>
+          </View>
+
+          {product.attributes.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Attributes</Text>
+              <View style={styles.attributes}>
+                {product.attributes.map((attr, index) => (
+                  <View key={index} style={styles.attributeItem}>
+                    <Text style={styles.attributeName}>{attr.name}: </Text>
+                    <Text>{attr.value}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
           <Text style={styles.sectionTitle}>Description</Text>
           <Text style={styles.description}>{product.description}</Text>
 
-          {/* Comments section */}
           <Text style={styles.sectionTitle}>Customer Reviews</Text>
-          <FlatList
-            data={product.comments}
-            renderItem={renderComment}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-          />
+          {Array.isArray(product.comments) && product.comments.length > 0 ? (
+            <FlatList
+              data={product.comments}
+              renderItem={renderComment}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+            />
+          ) : (
+            <Text style={styles.noReviews}>No reviews yet</Text>
+          )}
         </View>
       </ScrollView>
 
-      {/* Bottom action button */}
       <View style={styles.bottomButton}>
         <TouchableOpacity style={styles.addToCartButton}>
           <Text style={styles.addToCartText}>Add to Cart</Text>
         </TouchableOpacity>
       </View>
-      {/* </SafeAreaView> */}
     </>
   );
 };
@@ -197,6 +226,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 8,
   },
+  type: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 8,
+  },
   ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -219,6 +253,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginRight: 12,
   },
+  discount: {
+    fontSize: 16,
+    color: '#ff4444',
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  stockInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
   points: {
     fontSize: 16,
     color: "#009688",
@@ -234,6 +279,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: "#333",
+  },
+  attributes: {
+    marginBottom: 16,
+  },
+  attributeItem: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  attributeName: {
+    fontWeight: '600',
   },
   commentItem: {
     marginVertical: 8,
@@ -258,6 +313,12 @@ const styles = StyleSheet.create({
   commentText: {
     color: "#333",
   },
+  noReviews: {
+    fontStyle: 'italic',
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 8,
+  },
   bottomButton: {
     padding: 16,
     borderTopWidth: 1,
@@ -273,6 +334,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

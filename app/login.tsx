@@ -4,6 +4,8 @@ import { InputItem, Button } from '@ant-design/react-native';
 import { IconOutline } from '@ant-design/icons-react-native';
 import { router } from 'expo-router';
 import { userApi } from '../api/userApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UserResponse } from '../types/user';
 
 interface LoginForm {
   email: string;
@@ -19,11 +21,26 @@ const Login = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await userApi.signIn(form);
-      // Handle successful login here, e.g., store token, redirect
+      const response: UserResponse = await userApi.signIn(form);
+
+      // Store user data
+      await Promise.all([
+        AsyncStorage.setItem('userToken', response.accessToken),
+        AsyncStorage.setItem('refreshToken', response.refreshToken),
+        AsyncStorage.setItem('userId', response.data.id),
+        AsyncStorage.setItem('userInfo', JSON.stringify({
+          name: response.data.name,
+          email: response.data.email,
+          phone: response.data.phone,
+          avatar: response.data.avatar,
+          address: response.data.address,
+          isAdmin: response.data.isAdmin,
+        })),
+      ]);
+      debugger;
       router.push('/');
-    } catch (err) {
-      setError('Invalid email or password');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
