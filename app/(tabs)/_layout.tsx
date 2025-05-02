@@ -48,18 +48,6 @@ export default function TabLayout() {
             ),
           }}
         />
-        {/* Conditionally display the Profile tab when logged in */}
-        {user && (
-          <Tabs.Screen
-            name="profile"
-            options={{
-              title: 'Profile',
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="person" size={size} color={color} />
-              ),
-            }}
-          />
-        )}
         {/* Conditionally display the Order History tab when logged in */}
         {user && (
           <Tabs.Screen

@@ -6,6 +6,7 @@ import { Product as ProductType } from '../types/product';
 interface ProductProps {
   onPress: (productId: string) => void;
   category?: string;  // Add this line
+  searchQuery?: string; // Add searchQuery prop
 }
 
 const formatVND = (price: number) => {
@@ -15,7 +16,7 @@ const formatVND = (price: number) => {
   }).format(price);
 };
 
-const Product: React.FC<ProductProps> = ({ onPress, category }) => {
+const Product: React.FC<ProductProps> = ({ onPress, category, searchQuery }) => {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,9 +28,20 @@ const Product: React.FC<ProductProps> = ({ onPress, category }) => {
         if (response.status === 'OK') {
          
           let productData = response.data.productData;
+          
+          // Filter by category if specified
           if (category) {
             productData = productData.filter(product => product.type._id === category);
           }
+          
+          // Filter by search query if specified
+          if (searchQuery && searchQuery.trim() !== '') {
+            const query = searchQuery.toLowerCase().trim();
+            productData = productData.filter(product => 
+              product.name.toLowerCase().includes(query)
+            );
+          }
+          
           setProducts(productData);
         } else {
           setError('Failed to fetch products');
@@ -42,7 +54,8 @@ const Product: React.FC<ProductProps> = ({ onPress, category }) => {
     };
 
     fetchProducts();
-  }, [category]); // Add category to dependency array
+  }, [category, searchQuery]); // Add searchQuery to dependency array
+  
 
   if (loading) {
     return (

@@ -37,7 +37,7 @@ const Login = () => {
           isAdmin: response.data.isAdmin,
         })),
       ]);
-      debugger;
+  
       router.push('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid email or password');

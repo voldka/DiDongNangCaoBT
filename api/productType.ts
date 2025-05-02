@@ -7,6 +7,7 @@ export interface ProductType {
   image?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  imageUrl?: string;
 }
 
 const BASE_URL = '/api/product-types';

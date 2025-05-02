@@ -19,7 +19,7 @@ const Header = () => {
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'userId', 'userInfo']);
+    await AsyncStorage.clear();
     setIsSignedIn(false);
     setShowMenu(false);
     router.push('/login');

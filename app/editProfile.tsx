@@ -48,7 +48,7 @@ export default function EditProfileScreen() {
         if (value) formData.append(key, value);
       });
 
-      debugger;
+  
       const response = await userApi.updateUser(userId, formData);
       
       // Update storage with new user info
@@ -59,7 +59,7 @@ export default function EditProfileScreen() {
         ...form,
       };
       await AsyncStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
-      debugger;
+  
       Toast.success('Profile updated successfully');
       router.back();
     } catch (error) {

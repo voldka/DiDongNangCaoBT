@@ -10,7 +10,7 @@ export default function ProfileScreen() {
 
   const loadUserData = async () => {
     try {
-      debugger;
+  
 
       const userInfo = await AsyncStorage.getItem('userInfo');
       if (userInfo) {

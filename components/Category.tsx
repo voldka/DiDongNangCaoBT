@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { productTypeApi, ProductType } from '../api/productType';
 
 interface CategoryProps {
@@ -44,14 +44,22 @@ const Category: React.FC<CategoryProps> = ({ onPress }) => {
       <Text style={styles.title}>Categories</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {categories.map((category) => (
-          <TouchableOpacity 
+            <TouchableOpacity 
             key={category._id} 
-            style={styles.categoryItem}
+            style={[styles.categoryItem, { backgroundColor: 'white' }]}
             onPress={() => onPress(category._id!)}
-          >
+            >
+            {category.imageUrl ? (
+            <Image 
+              source={{ uri: category.imageUrl }} 
+              style={styles.categoryImage}
+              resizeMode="cover"
+            />
+            ) : (
             <Text style={styles.categoryIcon}>🏷️</Text>
+            )}
             <Text style={styles.categoryName}>{category.name}</Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
@@ -66,6 +74,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
+  },
+  categoryImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginBottom: 4,
   },
   categoryItem: {
     alignItems: 'center',
