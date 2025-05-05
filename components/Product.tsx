@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { productApi } from '../api/productApi';
 import { Product as ProductType } from '../types/product';
+import { useTranslation } from 'react-i18next';
 
 interface ProductProps {
   onPress: (productId: string) => void;
-  category?: string;  // Add this line
-  searchQuery?: string; // Add searchQuery prop
+  category?: string;
+  searchQuery?: string;
 }
 
 const formatVND = (price: number) => {
@@ -20,6 +21,7 @@ const Product: React.FC<ProductProps> = ({ onPress, category, searchQuery }) => 
   const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -44,18 +46,17 @@ const Product: React.FC<ProductProps> = ({ onPress, category, searchQuery }) => 
           
           setProducts(productData);
         } else {
-          setError('Failed to fetch products');
+          setError(t('errors.fetchFailed'));
         }
       } catch (err) {
-        setError('An error occurred while fetching products');
+        setError(t('errors.networkError'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [category, searchQuery]); // Add searchQuery to dependency array
-  
+  }, [category, searchQuery, t]);
 
   if (loading) {
     return (
@@ -75,7 +76,7 @@ const Product: React.FC<ProductProps> = ({ onPress, category, searchQuery }) => 
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Products</Text>
+      <Text style={styles.title}>{t('products.featuredProducts')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {products.map((product) => (
           <TouchableOpacity 
@@ -102,7 +103,7 @@ const Product: React.FC<ProductProps> = ({ onPress, category, searchQuery }) => 
             </View>
             <View style={styles.statsContainer}>
               <Text style={styles.statsText}>⭐ {Number(product.rating.$numberDecimal).toFixed(1)}</Text>
-              <Text style={styles.statsText}>Sold: {product.selled}</Text>
+              <Text style={styles.statsText}>{t('products.sold')}: {product.selled}</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -150,17 +151,17 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   productPrice: {
-    fontSize: 14,  // Slightly smaller to accommodate longer VND format
+    fontSize: 14,
     color: '#ee4d2d',
     fontWeight: 'bold',
   },
   discountedPrice: {
-    fontSize: 14,  // Slightly smaller to accommodate longer VND format
+    fontSize: 14,
     color: '#ee4d2d',
     fontWeight: 'bold',
   },
   originalPrice: {
-    fontSize: 11,  // Slightly smaller to accommodate longer VND format
+    fontSize: 11,
     color: '#666',
     textDecorationLine: 'line-through',
   },

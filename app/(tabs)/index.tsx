@@ -10,11 +10,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const HomeScreen = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -64,7 +66,7 @@ const HomeScreen = () => {
             <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search by product"
+              placeholder={t('common.search')}
               value={searchQuery}
               onChangeText={setSearchQuery}
               returnKeyType="search"

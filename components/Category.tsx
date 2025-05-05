@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { productTypeApi, ProductType } from '../api/productType';
+import { useTranslation } from 'react-i18next';
 
 interface CategoryProps {
   onPress: (categoryId: string) => void;
@@ -9,22 +10,22 @@ interface CategoryProps {
 const Category: React.FC<CategoryProps> = ({ onPress }) => {
   const [categories, setCategories] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-      const response = await productTypeApi.getAll();
-      
-      if (response.status === 'OK') {
-       
-        setCategories(response.data);
-      } else {
-        console.error('Failed to fetch categories');
-      }
+        const response = await productTypeApi.getAll();
+
+        if (response.status === 'OK') {
+          setCategories(response.data);
+        } else {
+          console.error('Failed to fetch categories');
+        }
       } catch (error) {
-      console.error('An error occurred while fetching categories:', error);
+        console.error('An error occurred while fetching categories:', error);
       } finally {
-      setLoading(false);
+        setLoading(false);
       }
     };
 
@@ -41,25 +42,25 @@ const Category: React.FC<CategoryProps> = ({ onPress }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Categories</Text>
+      <Text style={styles.title}>{t('products.allCategories')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {categories.map((category) => (
-            <TouchableOpacity 
-            key={category._id} 
+          <TouchableOpacity
+            key={category._id}
             style={[styles.categoryItem, { backgroundColor: 'white' }]}
             onPress={() => onPress(category._id!)}
-            >
+          >
             {category.imageUrl ? (
-            <Image 
-              source={{ uri: category.imageUrl }} 
-              style={styles.categoryImage}
-              resizeMode="cover"
-            />
+              <Image
+                source={{ uri: category.imageUrl }}
+                style={styles.categoryImage}
+                resizeMode="cover"
+              />
             ) : (
-            <Text style={styles.categoryIcon}>🏷️</Text>
+              <Text style={styles.categoryIcon}>🏷️</Text>
             )}
             <Text style={styles.categoryName}>{category.name}</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>

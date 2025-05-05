@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { InputItem, Button } from '@ant-design/react-native';
-import { IconOutline } from '@ant-design/icons-react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { router } from 'expo-router';
-import { userApi } from '../api/userApi';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserResponse } from '../types/user';
+import useAuth from '../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface LoginForm {
   email: string;
@@ -16,31 +16,17 @@ const Login = () => {
   const [form, setForm] = React.useState<LoginForm>({ email: '', password: '' });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
+  const { signIn } = useAuth();
+  const { t } = useTranslation();
 
   const onSignIn = async () => {
     try {
       setLoading(true);
       setError('');
-      const response: UserResponse = await userApi.signIn(form);
-
-      // Store user data
-      await Promise.all([
-        AsyncStorage.setItem('userToken', response.accessToken),
-        AsyncStorage.setItem('refreshToken', response.refreshToken),
-        AsyncStorage.setItem('userId', response.data.id),
-        AsyncStorage.setItem('userInfo', JSON.stringify({
-          name: response.data.name,
-          email: response.data.email,
-          phone: response.data.phone,
-          avatar: response.data.avatar,
-          address: response.data.address,
-          isAdmin: response.data.isAdmin,
-        })),
-      ]);
-  
+      await signIn(form);
       router.push('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid email or password');
+      setError(err.response?.data?.message || t('auth.invalidCredentials'));
     } finally {
       setLoading(false);
     }
@@ -48,21 +34,24 @@ const Login = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <LanguageSelector />
+      </View>
       <View style={styles.formContainer}>
-        <IconOutline name="user" size={50} style={styles.icon} />
-        <Text style={styles.title}>Welcome Back</Text>
+        <Icon name="person" size={50} style={styles.icon} />
+        <Text style={styles.title}>{t('auth.welcome')}</Text>
         
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <InputItem
-          placeholder="Email"
+          placeholder={t('common.email')}
           value={form.email}
           onChange={value => setForm({ ...form, email: value })}
           style={styles.input}
         />
         <InputItem
           type="password"
-          placeholder="Password"
+          placeholder={t('common.password')}
           value={form.password}
           onChange={value => setForm({ ...form, password: value })}
           style={styles.input}
@@ -74,15 +63,15 @@ const Login = () => {
           style={styles.button}
           disabled={loading}
         >
-          {loading ? <ActivityIndicator color="#fff" /> : 'Sign In'}
+          {loading ? <ActivityIndicator color="#fff" /> : t('common.login')}
         </Button>
 
         <View style={styles.links}>
           <TouchableOpacity onPress={() => router.push('/signUp')}>
-            <Text style={styles.linkText}>Create new account</Text>
+            <Text style={styles.linkText}>{t('common.createAccount')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/forgotPassword')}>
-            <Text style={styles.linkText}>Forgot Password?</Text>
+            <Text style={styles.linkText}>{t('common.forgotPassword')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -96,6 +85,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  header: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
   },
   formContainer: {
     width: '90%',

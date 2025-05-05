@@ -18,10 +18,13 @@ import { productApi } from "../../api/productApi";
 import { commentApi } from "../../api/commentApi";
 import { cartApi } from "../../api/cartApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from "../../components/LanguageSelector";
 
 const ProductDetail = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -100,10 +103,10 @@ const ProductDetail = () => {
         products: [cartItem]
       });
       
-      alert('Product added to cart successfully');
+      alert(t('products.addedToCart'));
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Failed to add product to cart');
+      alert(t('errors.generalError'));
     } finally {
       setAddingToCart(false);
     }
@@ -115,12 +118,12 @@ const ProductDetail = () => {
 
   const submitRatingAndComment = async () => {
     if (userRating === 0) {
-      Alert.alert("Rating Required", "Please select a star rating");
+      Alert.alert(t('products.ratingRequired'), t('products.pleaseSelectRating'));
       return;
     }
 
     if (userComment.trim() === "") {
-      Alert.alert("Comment Required", "Please enter a comment");
+      Alert.alert(t('products.commentRequired'), t('products.pleaseEnterComment'));
       return;
     }
 
@@ -129,7 +132,7 @@ const ProductDetail = () => {
       const userId = await AsyncStorage.getItem('userId');
       
       if (!userId) {
-        Alert.alert("Authentication Required", "Please log in to leave a review");
+        Alert.alert(t('products.authenticationRequired'), t('products.pleaseLoginToReview'));
         return;
       }
 
@@ -166,8 +169,8 @@ const ProductDetail = () => {
           // Short delay to ensure UI updates before showing the success message
           setTimeout(() => {
             Alert.alert(
-              "Review Submitted", 
-              "Thank you! Your review has been added successfully.",
+              t('products.reviewSubmitted'), 
+              t('products.reviewThanks'),
               [
                 { 
                   text: "OK", 
@@ -192,7 +195,7 @@ const ProductDetail = () => {
       }
     } catch (error) {
       console.error('Error submitting review:', error);
-      Alert.alert("Error", "Failed to submit your review. Please try again.");
+      Alert.alert(t('errors.generalError'), t('products.failedToSubmitReview'));
     } finally {
       setIsSubmitting(false);
     }
@@ -221,7 +224,7 @@ const ProductDetail = () => {
     return (
       <View style={styles.commentItem}>
         <View style={styles.commentHeader}>
-          <Text style={styles.commentUser}>{item.user?.name || 'Anonymous'}</Text>
+          <Text style={styles.commentUser}>{item.user?.name || t('products.anonymous')}</Text>
           {renderStars(item.star || 0)}
           <Text style={styles.commentDate}>{formattedDate}</Text>
         </View>
@@ -261,7 +264,7 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <View style={styles.errorContainer}>
-        <Text>Product not found</Text>
+        <Text>{t('products.noProducts')}</Text>
       </View>
     );
   }
@@ -273,6 +276,9 @@ const ProductDetail = () => {
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
+          
+          <LanguageSelector />
+          
           <TouchableOpacity>
             <Ionicons name="share-outline" size={24} color="black" />
           </TouchableOpacity>
@@ -300,30 +306,30 @@ const ProductDetail = () => {
 
         <View style={styles.content}>
           <Text style={styles.name}>{product.name}</Text>
-          <Text style={styles.type}>Type: {product.type.name}</Text>
+          <Text style={styles.type}>{t('products.type')}: {product.type.name}</Text>
           
           <View style={styles.ratingContainer}>
             {renderStars(parseFloat(product.rating.$numberDecimal))}
             <Text style={styles.reviewCount}>
-              ({product.countRating} reviews)
+              ({product.countRating} {t('products.reviews')})
             </Text>
           </View>
 
           <View style={styles.priceContainer}>
             <Text style={styles.price}>₫{formatPrice(product.price)}</Text>
             {product.discount > 0 && (
-              <Text style={styles.discount}>{product.discount}% OFF</Text>
+              <Text style={styles.discount}>{product.discount}% {t('products.off')}</Text>
             )}
           </View>
 
           <View style={styles.stockInfo}>
-            <Text>In Stock: {product.countInStock}</Text>
-            <Text>Sold: {product.selled}</Text>
+            <Text>{t('products.inStock')}: {product.countInStock}</Text>
+            <Text>{t('products.sold')}: {product.selled}</Text>
           </View>
 
           {product.attributes.length > 0 && (
             <>
-              <Text style={styles.sectionTitle}>Attributes</Text>
+              <Text style={styles.sectionTitle}>{t('products.attributes')}</Text>
               <View style={styles.attributes}>
                 {product.attributes.map((attr, index) => (
                   <View key={index} style={styles.attributeItem}>
@@ -335,10 +341,10 @@ const ProductDetail = () => {
             </>
           )}
 
-          <Text style={styles.sectionTitle}>Description</Text>
+          <Text style={styles.sectionTitle}>{t('products.description')}</Text>
           <Text style={styles.description}>{product.description}</Text>
 
-          <Text style={styles.sectionTitle} id="comments-section">Customer Reviews</Text>
+          <Text style={styles.sectionTitle} id="comments-section">{t('products.customerReviews')}</Text>
           {loadingComments ? (
             <ActivityIndicator size="small" color="#000" style={styles.commentsLoading} />
           ) : Array.isArray(comments) && comments.length > 0 ? (
@@ -349,20 +355,20 @@ const ProductDetail = () => {
               scrollEnabled={false}
             />
           ) : (
-            <Text style={styles.noReviews}>No reviews yet</Text>
+            <Text style={styles.noReviews}>{t('products.noReviews')}</Text>
           )}
 
           <View style={styles.reviewFormContainer}>
-            <Text style={styles.sectionTitle}>Write a Review</Text>
-            <Text style={styles.ratingLabel}>Your Rating:</Text>
+            <Text style={styles.sectionTitle}>{t('products.writeReview')}</Text>
+            <Text style={styles.ratingLabel}>{t('products.yourRating')}:</Text>
             <StarRating />
             
-            <Text style={styles.commentLabel}>Your Comment:</Text>
+            <Text style={styles.commentLabel}>{t('products.yourComment')}:</Text>
             <TextInput
               style={styles.commentInput}
               multiline
               numberOfLines={4}
-              placeholder="Share your thoughts about this product..."
+              placeholder={t('products.shareFeedback')}
               value={userComment}
               onChangeText={setUserComment}
             />
@@ -376,13 +382,13 @@ const ProductDetail = () => {
               disabled={isSubmitting || userRating === 0 || userComment.trim() === ""}
             >
               <Text style={styles.submitButtonText}>
-                {isSubmitting ? "Submitting..." : "Submit Review"}
+                {isSubmitting ? t('cart.processing') : t('products.submitReview')}
               </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.quantitySelector}>
-            <Text style={styles.sectionTitle}>Quantity:</Text>
+            <Text style={styles.sectionTitle}>{t('products.quantity')}:</Text>
             <View style={styles.quantityControls}>
               <TouchableOpacity 
                 style={[styles.quantityButton, quantity <= 1 && styles.disabledButton]}
@@ -411,7 +417,7 @@ const ProductDetail = () => {
           disabled={addingToCart}
         >
           <Text style={styles.addToCartText}>
-            {addingToCart ? 'Adding...' : `Add ${quantity} to Cart`}
+            {addingToCart ? t('cart.processing') : `${t('products.addToCart')} (${quantity})`}
           </Text>
         </TouchableOpacity>
       </View>

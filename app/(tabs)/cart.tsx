@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { SafeAreaView, StyleSheet, View, Alert, Image, ActivityIndicator, FlatList, Text } from 'react-native';
-import { Button, List } from '@ant-design/react-native';
+import { SafeAreaView, StyleSheet, View, Alert, Image, ActivityIndicator, FlatList, Text, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Button, List, InputItem, TextareaItem } from '@ant-design/react-native';
 import { cartApi } from '../../api/cartApi';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { orderApi } from '../../api/orderApi';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 // Updated enums to match MongoDB schema requirements
 export const PaymentMethods = {
@@ -51,7 +52,15 @@ const CartScreen = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
+  const [checkoutForm, setCheckoutForm] = useState({
+    fullName: '',
+    phone: '',
+    deliveryAddress: '',
+    notes: '',
+  });
   const router = useRouter();
+  const { t } = useTranslation();
 
   const fetchCartItems = useCallback(async () => {
     if (!userId) return;
@@ -62,17 +71,24 @@ const CartScreen = () => {
       setCartItems(response.data?.products || []);
     } catch (error) {
       console.error('Error fetching cart:', error);
-      setError('Failed to load cart items');
+      setError(t('errors.networkError'));
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, t]);
 
   const fetchUserData = useCallback(async () => {
     try {
       const userDataStr = await AsyncStorage.getItem('userData');
       if (userDataStr) {
-        setUserData(JSON.parse(userDataStr));
+        const userInfo = JSON.parse(userDataStr);
+        setUserData(userInfo);
+        setCheckoutForm({
+          fullName: userInfo.name || '',
+          phone: userInfo.phone || '',
+          deliveryAddress: userInfo.address || '',
+          notes: '',
+        });
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -117,9 +133,9 @@ const CartScreen = () => {
       const updatedItems = cartItems.filter(item => item._id !== itemId);
       setCartItems(updatedItems);
     } catch (error) {
-      Alert.alert('Error', 'Failed to remove item');
+      Alert.alert(t('errors.generalError'), t('errors.networkError'));
     }
-  }, [cartItems, userId]);
+  }, [cartItems, userId, t]);
 
   const handleUpdateAmount = useCallback(async (itemId: string, amountChange: number) => {
     try {
@@ -150,15 +166,15 @@ const CartScreen = () => {
         setCartItems(updatedItems);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update amount');
+      Alert.alert(t('errors.generalError'), t('errors.networkError'));
     }
-  }, [cartItems, userId, handleRemoveItem]);
+  }, [cartItems, userId, handleRemoveItem, t]);
 
   const handleCancelOrder = useCallback(() => {
-    Alert.alert('Cancel Order', 'Are you sure you want to cancel the order?', [
-      { text: 'No', style: 'cancel' },
+    Alert.alert(t('cart.cancelOrder'), t('cart.confirmCancel'), [
+      { text: t('common.cancel'), style: 'cancel' },
       { 
-        text: 'Yes', 
+        text: t('common.save'), 
         onPress: async () => {
           try {
             const products = cartItems.map(item => ({
@@ -169,23 +185,54 @@ const CartScreen = () => {
             await cartApi.updateCart(userId, { products });
             setCartItems([]);
           } catch (error) {
-            Alert.alert('Error', 'Failed to cancel order');
+            Alert.alert(t('errors.generalError'), t('errors.networkError'));
           }
         } 
       }
     ]);
-  }, [cartItems, userId]);
+  }, [cartItems, userId, t]);
 
-  const handleCheckout = useCallback(async (formValues: any = {}) => {
+  const openCheckoutModal = () => {
+    if (!userId || cartItems.length === 0) {
+      Alert.alert(t('errors.generalError'), t('cart.emptyCart'));
+      return;
+    }
+    setCheckoutModalVisible(true);
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setCheckoutForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleCheckout = useCallback(async () => {
     try {
       if (!userId || cartItems.length === 0) {
-        Alert.alert('Error', 'Your cart is empty or you are not logged in');
+        Alert.alert(t('errors.generalError'), t('cart.emptyCart'));
+        return;
+      }
+      
+      // Validate form fields
+      if (!checkoutForm.fullName.trim()) {
+        Alert.alert(t('errors.invalidInput'), t('errors.requiredField') + ': ' + t('cart.fullName'));
+        return;
+      }
+      
+      if (!checkoutForm.phone.trim()) {
+        Alert.alert(t('errors.invalidInput'), t('errors.requiredField') + ': ' + t('cart.phone'));
+        return;
+      }
+      
+      if (!checkoutForm.deliveryAddress.trim()) {
+        Alert.alert(t('errors.invalidInput'), t('errors.requiredField') + ': ' + t('cart.deliveryAddress'));
         return;
       }
       
       setCheckoutLoading(true);
       
-      const paymentMethod = formValues.paymentMethod || PaymentMethods.CASH;
+      const paymentMethod = PaymentMethods.CASH;
       const totalBill = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
       
       const payload = {
@@ -197,10 +244,10 @@ const CartScreen = () => {
         deliveryStatus: DeliveryStatus.PENDING,
         orderStatus: OrderStatus.PROCESSING,
         totalBill: totalBill,
-        notes: formValues.notes || '',
-        fullName: (formValues.fullName?.trim() || userData?.name?.trim() || ''),
-        phone: formValues.phone || userData?.phone || '',
-        deliveryAddress: (formValues.deliveryAddress?.trim() || userData?.address?.trim() || ''),
+        notes: checkoutForm.notes,
+        fullName: checkoutForm.fullName,
+        phone: checkoutForm.phone,
+        deliveryAddress: checkoutForm.deliveryAddress,
         products: cartItems.map(product => {
           const { _id, ...rest } = product;
           return rest;
@@ -210,26 +257,23 @@ const CartScreen = () => {
       await orderApi.createOrder(payload);
       await cartApi.updateCart(userId, { products: [] });
       setCartItems([]);
+      setCheckoutModalVisible(false);
       
-      Alert.alert('Success', 'Your order has been placed successfully', [
+      Alert.alert(t('status.success'), t('cart.orderSuccess'), [
         { 
           text: 'OK', 
           onPress: () => {
-            if (userData) {
-              router.push('/(tabs)/cart');
-            } else {
-              router.push('/(tabs)');
-            }
+            router.push('/(tabs)');
           }
         }
       ]);
       
     } catch (error: any) {
-      Alert.alert('Error', error?.message || 'Failed to place order');
+      Alert.alert(t('errors.generalError'), error?.message || t('errors.networkError'));
     } finally {
       setCheckoutLoading(false);
     }
-  }, [cartItems, userId, userData, router]);
+  }, [cartItems, userId, checkoutForm, router, t]);
 
   const renderCartItem = useCallback(({ item }: { item: CartItem }) => (
     <List.Item>
@@ -254,15 +298,105 @@ const CartScreen = () => {
               +
             </Button>
           </View>
-          <Text>Price: ${item.price}</Text>
-          <Text style={styles.totalPrice}>Total: ${item.totalPrice}</Text>
+          <Text>{t('products.price')}: ${item.price}</Text>
+          <Text style={styles.totalPrice}>{t('cart.total')}: ${item.totalPrice}</Text>
         </View>
         <Button type="warning" size="small" onPress={() => handleRemoveItem(item._id)}>
-          Remove
+          {t('cart.remove')}
         </Button>
       </View>
     </List.Item>
-  ), [handleRemoveItem, handleUpdateAmount]);
+  ), [handleRemoveItem, handleUpdateAmount, t]);
+
+  const renderCheckoutModal = () => {
+    const totalOrderPrice = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    
+    return (
+      <Modal
+        visible={checkoutModalVisible}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setCheckoutModalVisible(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
+            <ScrollView>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('cart.completeOrder')}</Text>
+                <Button
+                  type="ghost"
+                  size="small"
+                  onPress={() => setCheckoutModalVisible(false)}
+                >
+                  {t('common.cancel')}
+                </Button>
+              </View>
+              
+              <View style={styles.orderSummary}>
+                <Text style={styles.summaryTitle}>{t('cart.orderSummary')}</Text>
+                <View style={styles.summaryRow}>
+                  <Text>{t('cart.numberOfItems')}:</Text>
+                  <Text>{cartItems.length}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.totalLabel}>{t('cart.totalAmount')}:</Text>
+                  <Text style={styles.totalAmount}>${totalOrderPrice.toFixed(2)}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.formContainer}>
+                <Text style={styles.formTitle}>{t('cart.shippingInfo')}</Text>
+                
+                <InputItem
+                  clear
+                  placeholder={t('cart.fullName')}
+                  value={checkoutForm.fullName}
+                  onChange={value => handleFormChange('fullName', value)}
+                />
+                
+                <InputItem
+                  clear
+                  placeholder={t('cart.phone')}
+                  type="number"
+                  value={checkoutForm.phone}
+                  onChange={value => handleFormChange('phone', value)}
+                />
+                
+                <InputItem
+                  clear
+                  placeholder={t('cart.deliveryAddress')}
+                  value={checkoutForm.deliveryAddress}
+                  onChange={value => handleFormChange('deliveryAddress', value)}
+                />
+                
+                <TextareaItem
+                  rows={4}
+                  placeholder={t('cart.notes')}
+                  count={100}
+                  value={checkoutForm.notes}
+                  onChange={value => handleFormChange('notes', value)}
+                />
+              </View>
+              
+              <View style={styles.checkoutButtonContainer}>
+                <Button 
+                  type="primary" 
+                  style={styles.checkoutButton} 
+                  loading={checkoutLoading}
+                  onPress={handleCheckout}
+                >
+                  {checkoutLoading ? t('cart.processing') : t('cart.placeOrder')}
+                </Button>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+    );
+  };
 
   if (loading) {
     return (
@@ -290,34 +424,34 @@ const CartScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {cartItems.length === 0 ? (
-          <Text style={styles.emptyCart}>Your cart is empty</Text>
+          <Text style={styles.emptyCart}>{t('cart.emptyCart')}</Text>
         ) : (
           <FlatList
             data={cartItems}
             renderItem={renderCartItem}
             keyExtractor={item => item._id}
-            ListHeaderComponent={<List.Item>Your Cart</List.Item>}
+            ListHeaderComponent={<List.Item>{t('cart.yourCart')}</List.Item>}
           />
         )}
       </View>
       {cartItems.length > 0 && (
         <View style={styles.summaryContainer}>
           <List>
-            <List.Item extra={`$${totalOrderPrice}`}>Order Total</List.Item>
+            <List.Item extra={`$${totalOrderPrice}`}>{t('cart.orderTotal')}</List.Item>
           </List>
           <Button type="warning" style={styles.button} onPress={handleCancelOrder}>
-            Cancel Order
+            {t('cart.cancelOrder')}
           </Button>
           <Button 
             type="primary" 
             style={styles.button} 
-            loading={checkoutLoading}
-            onPress={() => handleCheckout()}
+            onPress={openCheckoutModal}
           >
-            {checkoutLoading ? 'Processing...' : 'Checkout'}
+            {t('common.checkout')}
           </Button>
         </View>
       )}
+      {renderCheckoutModal()}
     </SafeAreaView>
   );
 };
@@ -390,6 +524,65 @@ const styles = StyleSheet.create({
   amountText: {
     marginHorizontal: 12,
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f9',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  orderSummary: {
+    backgroundColor: '#fff',
+    margin: 16,
+    padding: 16,
+    borderRadius: 8,
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  totalLabel: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  totalAmount: {
+    color: '#e53935',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  formContainer: {
+    backgroundColor: '#fff',
+    margin: 16,
+    padding: 16,
+    borderRadius: 8,
+  },
+  formTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  checkoutButtonContainer: {
+    padding: 16,
+  },
+  checkoutButton: {
+    height: 45,
   },
 });
 

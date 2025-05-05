@@ -4,6 +4,8 @@ import { Card, WhiteSpace } from '@ant-design/react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { orderApi } from '../../api/orderApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '../../components/LanguageSelector';
 
 // Sample data as fallback
 const sampleOrderData = [
@@ -17,11 +19,12 @@ export default function OrderHistoryScreen() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { t } = useTranslation();
 
   // Format date to a more readable format
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -68,14 +71,15 @@ export default function OrderHistoryScreen() {
           } else {
             // Handle case where userId is not found in AsyncStorage
             if (isActive) {
-              setError("User not logged in. Please log in to view order history.");
-              setLoading(false);
+              setError(t('orderHistory.loginRequired'));
+              setLoadin
+              g(false);
             }
           }
         } catch (err) {
           console.error("Failed to fetch orders:", err);
           if (isActive) {
-            setError("Failed to load order history");
+            setError(t('errors.fetchFailed'));
             setLoading(false);
             // Fallback to sample data in case of error
             setOrders(sampleOrderData);
@@ -89,83 +93,97 @@ export default function OrderHistoryScreen() {
       return () => {
         isActive = false;
       };
-    }, [])
+    }, [t])
   );
 
   if (loading) {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Loading orders...</Text>
+        <Text style={styles.loadingText}>{t('orderHistory.loading')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Order History</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>{t('orderHistory.yourOrders')}</Text>
+        <LanguageSelector />
+      </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
-      <FlatList
-        data={orders}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <>
-            <TouchableOpacity onPress={() => router.push(`/order/${item._id}`)}>
-              <Card style={styles.card}>
-                <Card.Header 
-                  title={`Order #${item._id.slice(-6)}`} 
-                  extra={`Total: $${item.totalBill}`} 
-                />
-                <Card.Body>
-                  <View style={styles.body}>
-                    <View style={styles.statusRow}>
-                      <Text style={styles.statusLabel}>Status:</Text>
-                      <Text style={[styles.statusValue, { color: getStatusColor(item.orderStatus) }]}>
-                        {item.orderStatus}
-                      </Text>
-                    </View>
-                    
-                    <Text style={styles.detail}>Date: {formatDate(item.createdAt)}</Text>
-                    <Text style={styles.detail}>Payment: {item.paymentMethod}</Text>
-                    <Text style={styles.detail}>Payment Status: {item.paymentStatus}</Text>
-                    <Text style={styles.detail}>Delivery Status: {item.deliveryStatus}</Text>
-                    
-                    <Text style={styles.productsTitle}>Products:</Text>
-                    {item.products.map((product, index) => (
-                      product.amount > 0 && (
-                        <View key={product._id} style={styles.productItem}>
-                          {/* {product.image && (
-                            <Image 
-                              source={{ uri: product.image }} 
-                              style={styles.productImage}
-                              defaultSource={require('../../assets/images/placeholder.png')}
-                            />
-                          )} */}
-                          <View style={styles.productDetails}>
-                            <Text style={styles.productName}>{product.productName}</Text>
-                            <Text style={styles.productInfo}>
-                              Quantity: {product.amount} × ${product.price} = ${product.totalPrice}
-                            </Text>
+      {orders.length === 0 && !error ? (
+        <Text style={styles.noOrdersText}>{t('orderHistory.noOrders')}</Text>
+      ) : (
+        <FlatList
+          data={orders}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <>
+              <TouchableOpacity onPress={() => router.push(`/order/${item._id}`)}>
+                <Card style={styles.card}>
+                  <Card.Header 
+                    title={`${t('orderHistory.order')} #${item._id ? item._id.slice(-6) : null}`} 
+                    extra={`${t('cart.total')}: ${item.totalBill}đ`} 
+                  />
+                  <Card.Body>
+                    <View style={styles.body}>
+                      <View style={styles.statusRow}>
+                        <Text style={styles.statusLabel}>{t('orderHistory.orderStatus')}:</Text>
+                        <Text style={[styles.statusValue, { color: getStatusColor(item.orderStatus) }]}>
+                          {item.orderStatus}
+                        </Text>
+                      </View>
+                      
+                      <Text style={styles.detail}>{t('orderHistory.orderDate')}: {formatDate(item.createdAt)}</Text>
+                      <Text style={styles.detail}>{t('orderHistory.paymentMethod')}: {item.paymentMethod}</Text>
+                      <Text style={styles.detail}>{t('orderHistory.paymentStatus')}: {item.paymentStatus}</Text>
+                      <Text style={styles.detail}>{t('orderHistory.deliveryStatus')}: {item.deliveryStatus}</Text>
+                      
+                      <Text style={styles.productsTitle}>{t('orderHistory.products')}:</Text>
+                      {item.products.map((product, index) => (
+                        product.amount > 0 && (
+                          <View key={product._id || index} style={styles.productItem}>
+                            <View style={styles.productDetails}>
+                              <Text style={styles.productName}>{product.productName}</Text>
+                              <Text style={styles.productInfo}>
+                                {t('products.quantity')}: {product.amount} × {product.price}đ = {product.totalPrice}đ
+                              </Text>
+                            </View>
                           </View>
-                        </View>
-                      )
-                    ))}
-                  </View>
-                </Card.Body>
-              </Card>
-            </TouchableOpacity>
-            <WhiteSpace size="lg" />
-          </>
-        )}
-        contentContainerStyle={styles.list}
-      />
+                        )
+                      ))}
+                    </View>
+                  </Card.Body>
+                  <Card.Footer
+                    content=""
+                    extra={
+                      <TouchableOpacity onPress={() => router.push(`/order/${item._id}`)}>
+                        <Text style={styles.viewDetailsText}>{t('orderHistory.viewDetails')}</Text>
+                      </TouchableOpacity>
+                    }
+                  />
+                </Card>
+              </TouchableOpacity>
+              <WhiteSpace size="lg" />
+            </>
+          )}
+          contentContainerStyle={styles.list}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f2f2f2', padding: 20 },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20 },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20
+  },
+  title: { fontSize: 28, fontWeight: 'bold' },
   list: { paddingBottom: 20 },
   card: { borderRadius: 8, overflow: 'hidden' },
   body: { marginLeft: 16, paddingVertical: 8 },
@@ -216,5 +234,15 @@ const styles = StyleSheet.create({
   productInfo: { 
     fontSize: 12, 
     color: '#666' 
+  },
+  noOrdersText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 50
+  },
+  viewDetailsText: {
+    color: '#1890ff',
+    fontSize: 14
   }
 });

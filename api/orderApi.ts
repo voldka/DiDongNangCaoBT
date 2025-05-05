@@ -22,7 +22,13 @@ export const orderApi = {
     return axiosInstance.get(`/api/order/users/${userId}`)
       .then(response => response.data);
   },
-
+  
+  // Get order by ID
+  getOrderById: (orderId: string) => {
+    return axiosInstance.get(`/api/order/${orderId}`)
+      .then(response => response.data);
+  },
+  
   // Rate a product in an order
   rateOrder: (orderId: string, ratingData: OrderRate) => {
     return axiosInstance.patch(`/api/order/${orderId}/rate`, ratingData)

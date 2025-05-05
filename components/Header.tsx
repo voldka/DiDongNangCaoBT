@@ -3,11 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable } from 'reac
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
 const Header = () => {
   const router = useRouter();
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     checkAuthStatus();
@@ -36,13 +39,16 @@ const Header = () => {
   return (
     <View style={styles.header}>
       <Text style={styles.title}>LT Handmade</Text>
-      <TouchableOpacity onPress={handleAuthPress}>
-        <Ionicons 
-          name={isSignedIn ? 'person-circle' : 'log-in-outline'} 
-          size={24} 
-          color="black" 
-        />
-      </TouchableOpacity>
+      <View style={styles.rightContainer}>
+        <LanguageSelector style={styles.languageSelector} />
+        <TouchableOpacity onPress={handleAuthPress}>
+          <Ionicons 
+            name={isSignedIn ? 'person-circle' : 'log-in-outline'} 
+            size={24} 
+            color="black" 
+          />
+        </TouchableOpacity>
+      </View>
 
       <Modal
         visible={showMenu}
@@ -59,10 +65,10 @@ const Header = () => {
                 router.push('/profile');
               }}
             >
-              <Text>Profile</Text>
+              <Text>{t('common.profile')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
-              <Text style={styles.logoutText}>Logout</Text>
+              <Text style={styles.logoutText}>{t('common.logout')}</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -83,6 +89,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageSelector: {
+    marginRight: 16,
   },
   modalOverlay: {
     flex: 1,

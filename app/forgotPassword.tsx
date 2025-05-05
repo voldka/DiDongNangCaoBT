@@ -1,41 +1,48 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { InputItem, Button, Toast } from '@ant-design/react-native';
-import { IconOutline } from '@ant-design/icons-react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '../components/LanguageSelector';
 
 const ForgotPassword = () => {
   const [email, setEmail] = React.useState('');
+  const { t } = useTranslation();
 
   const handleResetPassword = () => {
     if (!email) {
-      Toast.fail('Please enter your email');
+      Toast.fail(t('errors.requiredField') + ': ' + t('common.email'));
       return;
     }
     
     // Handle password reset logic here
-    Toast.success('Reset instructions sent to your email');
+    Toast.success(t('auth.resetInstructionsSent'));
     router.push('/login');
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.formContainer}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <IconOutline name="left" size={24} color="#1890ff" />
-        </TouchableOpacity>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.back()}
+          >
+            <Icon name="arrow-back" size={24} color="#1890ff" />
+          </TouchableOpacity>
+          
+          <LanguageSelector />
+        </View>
 
-        <IconOutline name="lock" size={50} style={styles.icon} />
-        <Text style={styles.title}>Reset Password</Text>
+        <Icon name="lock" size={50} style={styles.icon} />
+        <Text style={styles.title}>{t('auth.resetPassword')}</Text>
         <Text style={styles.subtitle}>
-          Enter your email and we'll send you instructions to reset your password
+          {t('auth.resetInstructions')}
         </Text>
 
         <InputItem
-          placeholder="Email"
+          placeholder={t('common.email')}
           value={email}
           onChange={value => setEmail(value)}
           style={styles.input}
@@ -46,14 +53,14 @@ const ForgotPassword = () => {
           onPress={handleResetPassword}
           style={styles.button}
         >
-          Send Reset Link
+          {t('auth.sendResetLink')}
         </Button>
 
         <TouchableOpacity 
           onPress={() => router.back()}
           style={styles.loginLink}
         >
-          <Text style={styles.linkText}>Back to Login</Text>
+          <Text style={styles.linkText}>{t('common.back')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -82,13 +89,18 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 20,
+    padding: 5,
   },
   icon: {
-    marginTop: 30,
+    marginTop: 10,
     marginBottom: 20,
     color: '#1890ff',
   },

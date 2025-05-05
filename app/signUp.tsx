@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Form, InputItem, Button, Toast } from '@ant-design/react-native';
-import { IconOutline } from '@ant-design/icons-react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import userApi from '../api/userApi';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '../components/LanguageSelector';
 
 const SignUpScreen = () => {
   const [form, setForm] = React.useState({
@@ -15,14 +17,15 @@ const SignUpScreen = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = React.useState(false);
+  const { t } = useTranslation();
 
   const handleSignUp = async () => {
     if (!form.name || !form.email || !form.phone || !form.address || !form.password || !form.confirmPassword) {
-      Toast.fail('Please fill in all fields');
+      Toast.fail(t('auth.fillAllFields'));
       return;
     }
     if (form.password !== form.confirmPassword) {
-      Toast.fail('Passwords do not match!');
+      Toast.fail(t('auth.passwordsDontMatch'));
       return;
     }
     
@@ -37,10 +40,10 @@ const SignUpScreen = () => {
       };
 
       await userApi.signUp(userData);
-      Toast.success('Sign up successful!');
+      Toast.success(t('auth.signUpSuccess'));
       router.push('/login');
     } catch (error: any) {
-      Toast.fail(error.response?.data?.message || 'Sign up failed');
+      Toast.fail(error.response?.data?.message || t('auth.signUpFailed'));
     } finally {
       setLoading(false);
     }
@@ -49,50 +52,54 @@ const SignUpScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.formContainer}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <IconOutline name="left" size={24} color="#1890ff" />
-        </TouchableOpacity>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.back()}
+          >
+            <Icon name="arrow-back" size={24} color="#1890ff" />
+          </TouchableOpacity>
+          
+          <LanguageSelector />
+        </View>
 
-        <IconOutline name="user-add" size={50} style={styles.icon} />
-        <Text style={styles.title}>Create Account</Text>
+        <Icon name="person-add" size={50} style={styles.icon} />
+        <Text style={styles.title}>{t('auth.createAccount')}</Text>
 
         <InputItem
-          placeholder="Full Name"
+          placeholder={t('cart.fullName')}
           value={form.name}
           onChange={value => setForm({ ...form, name: value })}
           style={styles.input}
         />
         <InputItem
-          placeholder="Email"
+          placeholder={t('common.email')}
           value={form.email}
           onChange={value => setForm({ ...form, email: value })}
           style={styles.input}
         />
         <InputItem
-          placeholder="Phone Number"
+          placeholder={t('cart.phone')}
           value={form.phone}
           onChange={value => setForm({ ...form, phone: value })}
           style={styles.input}
         />
         <InputItem
-          placeholder="Address"
+          placeholder={t('cart.deliveryAddress')}
           value={form.address}
           onChange={value => setForm({ ...form, address: value })}
           style={styles.input}
         />
         <InputItem
           type="password"
-          placeholder="Password"
+          placeholder={t('common.password')}
           value={form.password}
           onChange={value => setForm({ ...form, password: value })}
           style={styles.input}
         />
         <InputItem
           type="password"
-          placeholder="Confirm Password"
+          placeholder={t('common.confirmPassword')}
           value={form.confirmPassword}
           onChange={value => setForm({ ...form, confirmPassword: value })}
           style={styles.input}
@@ -104,14 +111,14 @@ const SignUpScreen = () => {
           style={styles.button}
           loading={loading}
         >
-          Sign Up
+          {t('common.register')}
         </Button>
 
         <TouchableOpacity 
           onPress={() => router.back()}
           style={styles.loginLink}
         >
-          <Text style={styles.linkText}>Already have an account? Sign In</Text>
+          <Text style={styles.linkText}>{t('common.alreadyHaveAccount')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -140,13 +147,18 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 20,
+    padding: 5,
   },
   icon: {
-    marginTop: 30,
+    marginTop: 10,
     marginBottom: 20,
     color: '#1890ff',
   },

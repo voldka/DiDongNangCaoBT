@@ -1,36 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import { List, WhiteSpace, WingBlank, Button, Text } from '@ant-design/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, useFocusEffect } from 'expo-router';
-import { UserInfo } from '../types/user';
+import { router } from 'expo-router';
+import useAuth from '../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function ProfileScreen() {
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const { user, signOut } = useAuth();
+  const { t } = useTranslation();
 
-  const loadUserData = async () => {
-    try {
-  
-
-      const userInfo = await AsyncStorage.getItem('userInfo');
-      if (userInfo) {
-        const userData: UserInfo = JSON.parse(userInfo);
-        setUser(userData);
-      }
-    } catch (error) {
-      console.error('Error loading user data');
-    }
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/login');
   };
-
-  // Refresh data when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      loadUserData();
-    }, [])
-  );
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <LanguageSelector />
+      </View>
       <ScrollView>
         <WingBlank size="lg">
           <WhiteSpace size="lg" />
@@ -39,13 +28,13 @@ export default function ProfileScreen() {
               style={styles.avatar}
               source={{ uri: user?.avatar || 'https://placeimg.com/100/100/people' }}
             />
-            <Text style={styles.name}>{user?.name || 'User Name'}</Text>
+            <Text style={styles.name}>{user?.name || t('profile.userName')}</Text>
           </View>
 
           <List>
             <List.Item extra={user?.email}>Email</List.Item>
-            <List.Item extra={user?.phone}>Phone</List.Item>
-            <List.Item extra={user?.address}>Address</List.Item>
+            <List.Item extra={user?.phone}>{t('cart.phone')}</List.Item>
+            <List.Item extra={user?.address}>{t('cart.deliveryAddress')}</List.Item>
           </List>
 
           <WhiteSpace size="lg" />
@@ -55,7 +44,7 @@ export default function ProfileScreen() {
             onPress={() => router.push('/editProfile')}
             style={styles.button}
           >
-            Edit Profile
+            {t('profile.editProfile')}
           </Button>
 
           <WhiteSpace size="sm" />
@@ -64,7 +53,17 @@ export default function ProfileScreen() {
             onPress={() => router.push('/changePassword')}
             style={styles.button}
           >
-            Change Password
+            {t('profile.changePassword')}
+          </Button>
+          
+          <WhiteSpace size="lg" />
+          
+          <Button
+            type="warning"
+            onPress={handleLogout}
+            style={styles.button}
+          >
+            {t('common.logout')}
           </Button>
         </WingBlank>
       </ScrollView>
@@ -76,6 +75,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  header: {
+    alignItems: 'flex-end',
+    padding: 10,
+    marginTop: 40,
   },
   avatarContainer: {
     alignItems: 'center',
